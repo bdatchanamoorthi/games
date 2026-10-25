@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CodeQuest</title>
+<style>
+:root{--bg:#eaf1f3;--card:#fff;--tx:#10242e;--mut:#51707c;--bd:#d3e1e6;--ac:#0e7490;--on:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#08121b;--card:#0f1e2b;--tx:#e4f1f4;--mut:#8fb0bb;--bd:#1e3646;--ac:#5eead4;--on:#06222a}}
+:root[data-theme="dark"]{--bg:#08121b;--card:#0f1e2b;--tx:#e4f1f4;--mut:#8fb0bb;--bd:#1e3646;--ac:#5eead4;--on:#06222a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:14px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.5px}
+.stats{display:flex;gap:8px}
+.pill{background:var(--card);border:1px solid var(--bd);border-radius:99px;padding:3px 14px;font-weight:600}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.chip{border:2px solid var(--tc);background:var(--card);color:var(--tx);border-radius:12px;min-width:46px;padding:4px 10px;font:inherit;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.2}
+.chip small{font-size:10px;color:var(--tc)}
+.chip.on{background:var(--tc);color:#10242e}.chip.on small{color:#10242e}
+.chip:disabled{opacity:.4;cursor:not-allowed}
+main{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
+@media(max-width:860px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:12px;min-width:0}
+.scene{position:relative;border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at 50% 35%,#16394a,#07131c)}
+canvas{display:block;width:100%;height:auto}
+#badge{position:absolute;left:10px;top:10px;color:#e4f1f4;font-weight:600;font-size:14px;display:flex;gap:8px;align-items:center}
+#badge b{color:#10242e;border-radius:8px;padding:1px 9px}
+#story{margin:10px 2px 2px}
+#hint{margin:8px 0 0;padding:8px 12px;border-radius:10px;background:var(--bg);color:var(--mut)}
+#code{width:100%;height:250px;background:#0b1a24;color:#e4f1f4;border:1px solid var(--bd);border-radius:12px;padding:12px;font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical;tab-size:2}
+#code:focus-visible,.b:focus-visible,.chip:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.b{border:0;border-radius:10px;padding:9px 18px;font:inherit;font-weight:600;cursor:pointer;background:var(--ac);color:var(--on)}
+.b.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+.b[hidden],#hint[hidden]{display:none}
+#log{min-height:46px;margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--bg);font-size:14px}
+#log.ok{border-left:5px solid #16a34a}#log.bad{border-left:5px solid #f97316}
+details{margin-top:10px;color:var(--mut)}summary{cursor:pointer;font-weight:600;color:var(--tx)}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;background:var(--bg);padding:1px 5px;border-radius:5px}
+ul{margin:6px 0;padding-left:20px}
+.lang{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.lang button{border:1px solid var(--bd);background:transparent;color:var(--tx);border-radius:99px;padding:5px 14px;font:inherit;font-weight:600;cursor:pointer}
+.lang button.on{background:var(--ac);color:var(--on);border-color:var(--ac)}
+#keys{display:flex;gap:5px;overflow-x:auto;margin-top:8px;padding-bottom:2px}
+#keys button{flex:0 0 auto;min-width:38px;height:36px;padding:0 8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font:600 15px ui-monospace,Menlo,Consolas,monospace;cursor:pointer}
+.lang button:focus-visible,#keys button:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+#cmp{margin-top:10px}#cmp b{display:block;margin-top:8px}
+pre{margin:4px 0;padding:10px;border-radius:10px;background:#0b1a24;color:#e4f1f4;font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;overflow-x:auto}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style></head><body>
+<div class="wrap">
+<header><h1>CodeQuest</h1><div class="stats"><span class="pill">XP <b id="xp">0</b></span><span class="pill">★ <b id="st">0</b> / 27</span></div></header>
+<nav id="lv" aria-label="Levels"></nav>
+<main>
+<section class="card"><div class="scene"><canvas id="c" width="720" height="440"></canvas><div id="badge"></div></div>
+<p id="story"></p><p id="hint" hidden></p></section>
+<section class="card">
+<div class="lang" id="langs" role="group" aria-label="Programming language"></div>
+<textarea id="code" spellcheck="false" aria-label="Code editor"></textarea>
+<div id="keys" aria-label="Code keys"></div>
+<div class="btns"><button class="b" id="run">Run code</button><button class="b g" id="rst">Reset robot</button><button class="b g" id="hb">Show hint</button><button class="b" id="next" hidden>Next level</button></div>
+<div id="log" role="status"></div><div id="cmp"></div>
+<details><summary>Command book</summary><ul>
+<li><code>move()</code> walks one tile forward</li>
+<li><code>turnLeft()</code> and <code>turnRight()</code> rotate Byte</li>
+<li><code>collect()</code> picks up the gem under Byte</li>
+<li><code>wallAhead()</code> is true when a wall blocks the way</li>
+<li><code>onGem()</code> is true when Byte stands on a gem</li>
+<li>Also yours to use: <code>for</code>, <code>while</code>, <code>if</code>, and <code>function</code></li>
+<li>Python uses <code>turn_right()</code>, <code>wall_ahead()</code>, <code>on_gem()</code>, <code>for i in range(4):</code> and indentation. Java and JavaScript use camelCase names and curly braces.</li><li>Fewer lines of code earns more stars. Ctrl+Enter runs your code.</li></ul></details>
+</section></main></div>
+<script>
+const $=s=>document.querySelector(s),cv=$("#c"),X=cv.getContext("2d");
+const DX=[1,0,-1,0],DY=[0,1,0,-1],TC=["#14b8a6","#f59e0b","#fb5a3c"],TN=["Beginner","Intermediate","Advanced"];
+const L=[
+{t:0,n:"First steps",map:["......","S...G.","......"],par:4,story:"Meet Byte, your robot. Code runs top to bottom, one command at a time. Walk Byte to the gem.",hint:"move(); walks one tile. Use it three times, then collect();",code:"// Byte starts facing east\nmove();\n"},
+{t:0,n:"Turn around",map:["S...","###.","G..."],par:11,story:"Walls block the way. Use turns to steer Byte around the corner.",hint:"Go east 3, turnRight(), south 2, turnRight(), then west 3 and collect().",code:"// turnRight() and turnLeft() rotate Byte\n"},
+{t:0,n:"Gem trail",map:["#######","S.G.G.G","#######"],par:9,story:"Three gems in a row. Write the same steps again and again. Does this feel repetitive? Good. That is why loops exist.",hint:"move(); move(); collect(); three times.",code:"// Three gems, three times the work\n"},
+{t:1,n:"Loop power",map:["##########","S.G.G.G.G.","##########"],par:5,story:"A for loop repeats code. Put the repeating steps inside the curly braces.",hint:"Inside the loop: move(); move(); collect();",code:"// Repeat the same steps with a loop\nfor (let i = 0; i < 4; i++) {\n  // your steps here\n}\n"},
+{t:1,n:"Wall detector",map:["#########","S.......G","#########"],par:4,story:"You do not always know how far to walk. A while loop keeps going until a condition changes.",hint:"while (!wallAhead()) { move(); } then collect(). The ! means not.",code:"// Walk until a wall is ahead\nwhile (!wallAhead()) {\n  // your step here\n}\n"},
+{t:1,n:"Smart sweep",map:["##########","S.G..G.G..","##########"],par:6,story:"Gems hide at random spots. Use if to make a decision at every tile.",hint:"After each move(), ask: if (onGem()) { collect(); }",code:"// Collect only when Byte is on a gem\nfor (let i = 0; i < 9; i++) {\n  move();\n  if (onGem()) {\n    // ?\n  }\n}\n"},
+{t:2,n:"Function factory",map:["S....",".G...","..G..","...G."],par:10,story:"Gems climb a staircase. Teach Byte a new command with function, then call it again and again.",hint:"step(): move, turnRight, move, collect, turnLeft. Then call step(); three times.",code:"// Make your own command\nfunction step() {\n  // move, turn, move, collect, turn back\n}\n\nstep();\n"},
+{t:2,n:"Square dance",map:["S..G",".##.",".##.","G..G"],par:7,story:"Gems wait in the corners of the room. A loop inside a loop walks every side.",hint:"Outer loop 4 times. Inner loop moves 3 times. Then collect and turn.",code:"// Walk the edge: loop inside a loop\n"},
+{t:2,n:"Final boss: gem field",map:["SGGGG","GGGGG","GGGGG","GGGGG"],par:18,story:"Every tile holds a gem. Write sweep() once for a whole row, then reuse it as Byte snakes down the field.",hint:"sweep(): while no wall ahead, collect and move; collect once more at the end. Turn right, move, turn right, sweep. Then turn left, move, turn left, sweep.",code:"// Write sweep() once, reuse it every row\n"}
+];
+let lv=0,lvl,view,busy=false,tm=0,parts=[],ac,G={},lang="js";try{lang=localStorage.getItem("cql")||"js"}catch(e){}
+if(!["py","js","java"].includes(lang))lang="js";
+let prog={};try{prog=JSON.parse(localStorage.getItem("cq")||"{}")}catch(e){}
+const save=()=>{try{localStorage.setItem("cq",JSON.stringify(prog))}catch(e){}};
+function beep(f,d){try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;g.gain.value=.04;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+function parse(i){const m=L[i].map,o={w:m[0].length,h:m.length,walls:new Set,gems:new Set};m.forEach((r,y)=>[...r].forEach((c,x)=>{if(c=="#")o.walls.add(x+","+y);if(c=="G")o.gems.add(x+","+y);if(c=="S")o.s={x,y}}));return o}
+function lay(){const n=lvl.w+lvl.h;G.hw=Math.min(62,330/n);G.hh=G.hw/2;G.ox=360-(lvl.w-lvl.h)*G.hw/2;G.oy=225-n*G.hh/2+G.hw*.3}
+const P=(x,y)=>[(x-y)*G.hw+G.ox,(x+y)*G.hh+G.oy];
+function poly(p,f,s){X.beginPath();p.forEach((q,i)=>i?X.lineTo(q[0],q[1]):X.moveTo(q[0],q[1]));X.closePath();X.fillStyle=f;X.fill();if(s){X.strokeStyle=s;X.lineWidth=1;X.stroke()}}
+function wall(x,y){const h=G.hw*.75,a=P(x,y),b=P(x+1,y),c=P(x+1,y+1),d=P(x,y+1),u=p=>[p[0],p[1]-h];
+poly([d,c,u(c),u(d)],"#3b7482","rgba(0,0,0,.25)");poly([b,c,u(c),u(b)],"#2c5a66","rgba(0,0,0,.25)");poly([u(a),u(b),u(c),u(d)],"#5a9aa8","rgba(255,255,255,.18)")}
+function gem(x,y){const[px,py]=P(x+.5,y+.5),r=G.hw*.2,t=py-G.hw*.45-Math.sin(tm*2.2+x*1.3+y)*3;
+X.fillStyle="rgba(0,0,0,.3)";X.beginPath();X.ellipse(px,py,r*1.1,r*.55,0,0,7);X.fill();
+X.save();X.shadowColor="#fbbf24";X.shadowBlur=20;poly([[px,t-r*1.4],[px+r,t],[px,t+r*1.4],[px-r,t]],"#f59e0b");X.restore();
+poly([[px,t-r*1.4],[px+r,t],[px,t]],"#fcd34d");poly([[px,t-r*1.4],[px-r,t],[px,t]],"#fde68a")}
+function robot(){const[px,py]=P(view.x+.5,view.y+.5),s=G.hw/60,by=py-(view.hop||0)*9*s-8*s,an=view.a*Math.PI/2,fx=Math.cos(an),fy=Math.sin(an),sx=(fx-fy)*.7,sy=(fx+fy)*.35;
+X.fillStyle="rgba(0,0,0,.4)";X.beginPath();X.ellipse(px,py,16*s,7*s,0,0,7);X.fill();
+const g=X.createLinearGradient(0,by-34*s,0,by);g.addColorStop(0,"#fff1d6");g.addColorStop(1,"#ff7a4a");
+X.fillStyle=g;X.beginPath();X.roundRect(px-15*s,by-34*s,30*s,32*s,10*s);X.fill();
+X.globalAlpha=sy<0?.3:1;X.fillStyle="#1b0f0a";X.beginPath();X.ellipse(px+sx*10*s,by-22*s+sy*6*s,10*s,7*s,0,0,7);X.fill();
+X.fillStyle="#22d3ee";X.beginPath();X.arc(px+sx*14*s,by-22*s+sy*8*s,2.6*s,0,7);X.fill();X.globalAlpha=1;
+X.strokeStyle="#94a3b8";X.lineWidth=2*s;X.beginPath();X.moveTo(px,by-34*s);X.lineTo(px,by-42*s);X.stroke();
+X.fillStyle="#22d3ee";X.beginPath();X.arc(px,by-43*s,3*s,0,7);X.fill()}
+function draw(){tm+=.016;X.clearRect(0,0,720,440);const th=G.hw*.18;
+for(let s=0;s<lvl.w+lvl.h;s++)for(let x=0;x<lvl.w;x++){const y=s-x;if(y<0||y>=lvl.h||lvl.walls.has(x+","+y))continue;
+const a=P(x,y),b=P(x+1,y),c=P(x+1,y+1),d=P(x,y+1);
+poly([d,c,[c[0],c[1]+th],[d[0],d[1]+th]],"#1a3b47");poly([b,c,[c[0],c[1]+th],[b[0],b[1]+th]],"#12303a");
+poly([a,b,c,d],(x+y)%2?"#2a5a68":"#2f6574","rgba(255,255,255,.08)");
+if(x==lvl.s.x&&y==lvl.s.y){const q=P(x+.5,y+.5);X.strokeStyle="rgba(253,224,71,.7)";X.lineWidth=2;X.beginPath();X.ellipse(q[0],q[1],G.hw*.5,G.hh*.5,0,0,7);X.stroke()}}
+const E=[];lvl.walls.forEach(k=>{const[x,y]=k.split(",").map(Number);E.push({z:x+y+1,f:()=>wall(x,y)})});
+view.g.forEach(k=>{const[x,y]=k.split(",").map(Number);E.push({z:x+y+1,f:()=>gem(x,y)})});
+E.push({z:view.x+view.y+1.01,f:robot});E.sort((a,b)=>a.z-b.z).forEach(e=>e.f());
+parts=parts.filter(p=>p.l>0);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.15;p.l-=.02;X.globalAlpha=Math.max(0,p.l);X.fillStyle=p.c;X.beginPath();X.arc(p.x,p.y,3,0,7);X.fill()});X.globalAlpha=1}
+function burst(n=18,at){const[px,py]=at||P(view.x+.5,view.y+.5);for(let i=0;i<n;i++)parts.push({x:px,y:py-20,vx:(Math.random()-.5)*5,vy:-Math.random()*5-1,l:1,c:["#fcd34d","#fde68a","#22d3ee","#ff7a4a"][i%4]})}
+const conv=(c,l)=>l=="py"?js2py(c):l=="java"?js2java(c):c;
+const toJS=c=>lang=="py"?py2js(c):lang=="java"?java2js(c):c;
+const fixHint=h=>lang!="py"?h:h.replace(" The ! means not.","").replace(/turnRight/g,"turn_right").replace(/turnLeft/g,"turn_left").replace(/wallAhead/g,"wall_ahead").replace(/onGem/g,"on_gem").replace(/;/g,"").replace(/!/g,"not ").replace(/\(((?:not )?\w+\(\))\)\s*\{\s*([^}]*?)\s*\}/g,"$1: $2");
+function ri(s){let d=0;return s.split("\n").map(l=>{l=l.trim();if(!l)return"";if(l[0]=="}")d=Math.max(0,d-1);const r="  ".repeat(d)+l;d+=(l.match(/\{/g)||[]).length-(l.match(/\}/g)||[]).length+(l[0]=="}"?1:0);return r}).join("\n").trim()}
+function py2js(s){const o=[],st=[0];let pend=0;
+for(const raw of s.split("\n")){let t=raw.replace(/\s+#.*$/,"").trim();if(!t||t[0]=="#")continue;const ind=raw.match(/^ */)[0].length;
+if(pend){st.push(ind);pend=0}else while(ind<st[st.length-1]){st.pop();o.push("  ".repeat(st.length-1)+"}")}
+t=t.replace(/\bnot\s+/g,"!").replace(/\band\b/g," && ").replace(/\bor\b/g," || ").replace(/\bTrue\b/g,"true").replace(/\bFalse\b/g,"false").replace(/turn_left/g,"turnLeft").replace(/turn_right/g,"turnRight").replace(/wall_ahead/g,"wallAhead").replace(/on_gem/g,"onGem");
+const pad="  ".repeat(st.length-1);let m;
+if(t.endsWith(":")){t=t.slice(0,-1);pend=1;
+if(m=t.match(/^for\s+(\w+)\s+in\s+range\((.+)\)$/))t="for (let "+m[1]+" = 0; "+m[1]+" < "+m[2]+"; "+m[1]+"++) {";
+else if(m=t.match(/^def\s+(\w+)\(\)$/))t="function "+m[1]+"() {";
+else if(m=t.match(/^(if|while|elif)\s+(.+)$/))t=(m[1]=="elif"?"else if":m[1])+" ("+m[2]+") {";
+else t=t=="else"?"else {":t+" {"}
+else if(t!="pass")t+=";";
+if(t!="pass")o.push(pad+t)}
+while(st.length>1){st.pop();o.push("  ".repeat(st.length-1)+"}")}
+return o.join("\n")}
+function java2js(s){let ls=s.split("\n"),n=0;
+ls=ls.filter(l=>{if(/\bclass\s+\w+/.test(l)||/void\s+main\s*\(/.test(l)){n++;return false}return true});
+while(n-->0){const i=ls.map(l=>l.trim()).lastIndexOf("}");if(i>=0)ls.splice(i,1)}
+return ri(ls.join("\n").replace(/\b(?:public|private)\s+/g,"").replace(/\bstatic\s+void\s+(\w+)\s*\(/g,"function $1(").replace(/\b(?:int|var|boolean)\s+(\w+)\s*=/g,"let $1 ="))}
+function js2py(c){const o=[];
+for(const raw of c.split("\n")){let t=raw.trim();const ind=raw.match(/^ */)[0];
+if(!t){o.push("");continue}
+if(t.startsWith("//")){o.push(ind+"#"+t.slice(2));continue}
+if(t[0]=="}"){t=t.slice(1).trim();if(!t)continue}
+t=t.replace(/^function\s+(\w+)\s*\(\)\s*\{$/,"def $1():").replace(/^for\s*\(\s*let\s+(\w+)\s*=\s*0;\s*\w+\s*<\s*(\w+);\s*\w+\+\+\s*\)\s*\{$/,"for $1 in range($2):").replace(/^else\s+if\s*\((.*)\)\s*\{$/,"elif $1:").replace(/^else\s*\{$/,"else:").replace(/^(if|while)\s*\((.*)\)\s*\{$/,"$1 $2:").replace(/;$/,"").replace(/!(?!=)/g,"not ").replace(/&&/g," and ").replace(/\|\|/g," or ").replace(/turnLeft/g,"turn_left").replace(/turnRight/g,"turn_right").replace(/wallAhead/g,"wall_ahead").replace(/onGem/g,"on_gem");
+o.push(ind+t)}
+const r=[];
+o.forEach((l,i)=>{r.push(l);if(l.endsWith(":")&&!l.trim().startsWith("#")){const ind=l.match(/^ */)[0].length;let j=i+1;while(j<o.length&&(!o[j].trim()||o[j].trim()[0]=="#"))j++;if(j>=o.length||o[j].match(/^ */)[0].length<=ind)r.push(" ".repeat(ind+2)+"pass")}});
+return r.join("\n").trim()}
+function js2java(c){const m=[],b=[];let f=0;
+for(const raw of c.split("\n")){const t=raw.replace(/\blet\s+(\w+)\s*=/g,"int $1 =").replace(/^function\s+(\w+)/,"static void $1");
+if(f||/^function\s/.test(raw)){f=raw==="}"?0:1;m.push(t?"  "+t:"");continue}
+b.push(t?"    "+t:"")}
+return"public class Main {\n"+m.join("\n")+"\n  public static void main(String[] args) {\n"+b.join("\n")+"\n  }\n}"}
+function compare(){const js=ri(toJS($("#code").value)),o=$("#cmp");o.innerHTML="<details open><summary>Your solution in all three languages</summary></details>";
+[["Python",js2py(js)],["JavaScript",js],["Java",js2java(js)]].forEach(([n,c])=>{const b=document.createElement("b"),p=document.createElement("pre");b.textContent=n;p.textContent=c;o.firstChild.append(b,p)})}
+function simulate(src){const p={x:lvl.s.x,y:lvl.s.y,d:0,a:0},g=new Set(lvl.gems);let n=0;const fr=[{x:p.x,y:p.y,a:0,g:[...g],e:""}];
+const tick=()=>{if(++n>800)throw new Error("Too many steps. Check your loop: does it ever stop?")};
+const push=e=>{tick();fr.push({x:p.x,y:p.y,a:p.a,g:[...g],e})};
+const blocked=()=>{const x=p.x+DX[p.d],y=p.y+DY[p.d];return x<0||y<0||x>=lvl.w||y>=lvl.h||lvl.walls.has(x+","+y)};
+const api={move(){if(blocked())return push("bump");p.x+=DX[p.d];p.y+=DY[p.d];push("move")},
+turnRight(){p.d=(p.d+1)%4;p.a++;push("turn")},turnLeft(){p.d=(p.d+3)%4;p.a--;push("turn")},
+collect(){push(g.delete(p.x+","+p.y)?"gem":"miss")},wallAhead(){tick();return blocked()},onGem(){tick();return g.has(p.x+","+p.y)}};
+let err=null;try{new Function(...Object.keys(api),"__t",'"use strict";'+src.replace(/\bwhile\s*\(/g,"while(__t(),"))(...Object.values(api),tick)}catch(e){err=e}
+return{fr,err}}
+const tween=(a,b)=>new Promise(res=>{const ms=b.e=="move"?300:b.e=="turn"?220:240,t0=performance.now();
+(function f(t){const k=Math.min(1,(t-t0)/ms),e=k*k*(3-2*k);view.x=a.x+(b.x-a.x)*e;view.y=a.y+(b.y-a.y)*e;view.a=a.a+(b.a-a.a)*e;view.hop=b.e=="move"?Math.sin(k*Math.PI):0;
+if(b.e=="bump"){const d=((Math.round(a.a)%4)+4)%4,s=Math.sin(k*Math.PI)*.15;view.x+=DX[d]*s;view.y+=DY[d]*s}
+if(k<1)requestAnimationFrame(f);else{view.g=new Set(b.g);if(b.e=="gem"){burst();beep(660,.12)}if(b.e=="bump")beep(120,.15);res()}})(t0)});
+function msg(t,c){$("#log").textContent=t;$("#log").className=c||""}
+function reset(){view={x:lvl.s.x,y:lvl.s.y,a:0,g:new Set(lvl.gems),hop:0}}
+function nav(){const n=$("#lv");n.innerHTML="";L.forEach((l,i)=>{const b=document.createElement("button"),lock=i>0&&!prog[i-1];b.className="chip"+(i==lv?" on":"");b.disabled=lock;b.style.setProperty("--tc",TC[l.t]);b.title=TN[l.t]+": "+l.n;b.innerHTML=(lock?"🔒":i+1)+(prog[i]?"<small>"+"★".repeat(prog[i])+"</small>":"");b.onclick=()=>go(i);n.append(b)});
+const s=Object.values(prog).reduce((a,b)=>a+b,0);$("#xp").textContent=s*100;$("#st").textContent=s}
+function go(i){if(busy)return;lv=i;lvl=parse(i);lay();reset();const l=L[i];$("#code").value=conv(l.code,lang);
+$("#badge").innerHTML='<b style="background:'+TC[l.t]+'">'+TN[l.t]+"</b>Level "+(i+1)+": "+l.n;
+$("#story").textContent=l.story;$("#hint").hidden=true;$("#hb").textContent="Show hint";$("#hint").textContent="Hint: "+fixHint(l.hint);
+msg("Write your code, then press Run code.");$("#cmp").innerHTML="";$("#next").hidden=true;nav()}
+async function run(){if(busy)return;reset();busy=true;$("#next").hidden=true;msg("Running…");
+const js=toJS($("#code").value),r=simulate(js);for(let i=1;i<r.fr.length;i++)await tween(r.fr[i-1],r.fr[i]);busy=false;
+const bump=r.fr.filter(f=>f.e=="bump").length,miss=r.fr.filter(f=>f.e=="miss").length,left=view.g.size;
+let extra=(bump?" Byte bumped into a wall "+bump+"x.":"")+(miss?" collect() found nothing "+miss+"x.":"");
+if(r.err)return msg("Error: "+r.err.message+extra,"bad");
+if(!left){const lines=js.split("\n").filter(l=>l.trim()&&!l.trim().startsWith("//")).length,par=L[lv].par,st=lines<=par?3:lines<=Math.ceil(par*1.5)?2:1;
+prog[lv]=Math.max(prog[lv]||0,st);save();burst(60,[360,200]);beep(880,.25);nav();compare();
+msg((lv==L.length-1?"You beat CodeQuest! ":"Level complete! ")+"★".repeat(st)+"☆".repeat(3-st)+" with "+lines+" lines (par "+par+")."+(st<3?" Shorter code earns more stars.":"")+extra,"ok");
+$("#next").hidden=lv==L.length-1}
+else msg(left+" gem"+(left>1?"s":"")+" still waiting. Adjust your code and run again."+extra,"bad")}
+$("#run").onclick=run;$("#rst").onclick=()=>{if(!busy){reset();msg("Byte is back at the start.")}};
+$("#hb").onclick=()=>{const h=$("#hint");h.hidden=!h.hidden;$("#hb").textContent=h.hidden?"Show hint":"Hide hint"};
+$("#next").onclick=()=>go(lv+1);
+$("#code").addEventListener("keydown",e=>{if(e.key=="Tab"){e.preventDefault();const t=e.target,s=t.selectionStart;t.value=t.value.slice(0,s)+"  "+t.value.slice(t.selectionEnd);t.selectionStart=t.selectionEnd=s+2}
+if(e.key=="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();run()}});
+const LN={py:"Python",js:"JavaScript",java:"Java"};
+function langs(){const n=$("#langs");n.innerHTML="";for(const k in LN){const b=document.createElement("button");b.textContent=LN[k];b.className=k==lang?"on":"";b.setAttribute("aria-pressed",k==lang);b.onclick=()=>{if(busy||k==lang)return;lang=k;try{localStorage.setItem("cql",k)}catch(e){}langs();go(lv);msg("Switched to "+LN[k]+". Starter code reloaded.")};n.append(b)}}
+["Tab","{","}","(",")",";",":","!","<","_","=","++"].forEach(k=>{const b=document.createElement("button");b.textContent=k;b.onmousedown=e=>e.preventDefault();b.onclick=()=>{const t=$("#code"),p=t.selectionStart;t.setRangeText(k=="Tab"?"  ":k,p,t.selectionEnd,"end");t.focus()};$("#keys").append(b)});
+langs();go(0);(function loop(){draw();requestAnimationFrame(loop)})();
+</script></body></html>
